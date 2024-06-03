@@ -1,10 +1,15 @@
 @echo off
 :: Batch script to run emmcdl commands with selected loader file and auto-detected COM port
 
+:: Colors
+set "green=[92m"
+set "red=[91m"
+set "reset=[0m"
+
 :: Check if edl tool is available
 where edl >nul 2>&1
 if %errorlevel% neq 0 (
-    echo edl tool not found in PATH.
+    echo %red%edl tool not found in PATH.%reset%
     echo Please ensure edl is installed and available in the PATH.
     exit /b 1
 )
@@ -12,20 +17,20 @@ if %errorlevel% neq 0 (
 :: Check if emmcdl tool is available
 where emmcdl >nul 2>&1
 if %errorlevel% neq 0 (
-    echo emmcdl tool not found in PATH.
+    echo %red%emmcdl tool not found in PATH.%reset%
     echo Please ensure emmcdl is installed and available in the PATH.
     exit /b 1
 )
 
 :: Run commands sequentially
 echo.
-echo Choose a command to execute:
-echo 1. List Devices
-echo 2. Get Device Info
-echo 3. Read Partition Table
-echo 4. Erase Userdata Partition
-echo 5. Erase FRP Partition
-echo 6. Erase Config Partition
+echo %green%Choose a command to execute:%reset%
+echo %green%1. List Devices%reset%
+echo %green%2. Get Device Info%reset%
+echo %green%3. Read Partition Table%reset%
+echo %green%4. Erase Userdata Partition%reset%
+echo %green%5. Erase FRP Partition%reset%
+echo %green%6. Erase Config Partition%reset%
 echo.
 
 set /p choice="Enter your choice: "
@@ -43,8 +48,15 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="6" (
     call :erase_config
 ) else (
-    echo Invalid choice. Exiting...
+    echo %red%Invalid choice. Exiting...%reset%
     exit /b 1
+)
+
+:: Prompt to extract log file
+set /p extract="Do you want to extract log file (Y/N)? "
+
+if /i "%extract%"=="Y" (
+    call :extract_log
 )
 
 echo All commands executed successfully.
@@ -78,4 +90,8 @@ exit /b 0
 :erase_config
 echo Erasing config partition...
 emmcdl -p %com_port% -f "%loader_path%" -e config
+exit /b 0
+
+:extract_log
+echo Extracting log file...
 exit /b 0

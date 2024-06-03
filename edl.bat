@@ -11,14 +11,7 @@ if %errorlevel% neq 0 (
 
 :: Auto-detect COM port using edl --serial
 echo Detecting COM port using edl --serial...
-edl --serial > detect_com_port.txt
-if %errorlevel% neq 0 (
-    echo Failed to auto-detect COM port with edl.
-    exit /b 1
-)
-
-:: Extract COM port from the output
-for /f "tokens=*" %%i in (detect_com_port.txt) do (
+for /f "tokens=*" %%i in ('edl --serial 2^>nul') do (
     set "com_port=%%i"
     goto found_com_port
 )

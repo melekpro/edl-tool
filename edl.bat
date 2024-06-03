@@ -9,21 +9,6 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Auto-detect COM port using edl --serial
-echo Detecting COM port using edl --serial...
-for /f "tokens=*" %%i in ('edl --serial 2^>nul') do (
-    set "com_port=%%i"
-    goto found_com_port
-)
-
-:found_com_port
-if "%com_port%"=="" (
-    echo No COM port detected.
-    exit /b 1
-)
-
-echo Detected COM port: %com_port%
-
 :: Check if emmcdl tool is available
 where emmcdl >nul 2>&1
 if %errorlevel% neq 0 (
@@ -33,33 +18,36 @@ if %errorlevel% neq 0 (
 )
 
 :: Run commands sequentially
-call :run_command list_devices
-call :run_command get_device_info
-call :run_command read_partition_table
-call :run_command erase_userdata
-call :run_command erase_frp
-call :run_command erase_config
+echo.
+echo Choose a command to execute:
+echo 1. List Devices
+echo 2. Get Device Info
+echo 3. Read Partition Table
+echo 4. Erase Userdata Partition
+echo 5. Erase FRP Partition
+echo 6. Erase Config Partition
+echo.
 
-echo All commands executed successfully.
-exit /b 0
+set /p choice="Enter your choice: "
 
-:run_command
-:: Check if loader file is not selected or does not exist
-if "%loader_path%"=="" (
-    call :prompt_for_loader
-    if "%loader_path%"=="" (
-        echo No loader file selected. Exiting...
-        exit /b 1
-    )
-)
-
-:: Run specified command
-echo Executing command: %1
-call :%1
-if %errorlevel% neq 0 (
-    echo Failed to execute command %1.
+if "%choice%"=="1" (
+    call :list_devices
+) else if "%choice%"=="2" (
+    call :get_device_info
+) else if "%choice%"=="3" (
+    call :read_partition_table
+) else if "%choice%"=="4" (
+    call :erase_userdata
+) else if "%choice%"=="5" (
+    call :erase_frp
+) else if "%choice%"=="6" (
+    call :erase_config
+) else (
+    echo Invalid choice. Exiting...
     exit /b 1
 )
+
+echo All commands executed successfully.
 exit /b 0
 
 :list_devices
@@ -90,20 +78,4 @@ exit /b 0
 :erase_config
 echo Erasing config partition...
 emmcdl -p %com_port% -f "%loader_path%" -e config
-exit /b 0
-
-:prompt_for_loader
-echo.
-echo Please select the loader file using the file dialog.
-echo.
-for /f "usebackq tokens=*" %%i in (`powershell -command "Add-Type -AssemblyName System.Windows.Forms; $FileDialog = New-Object System.Windows.Forms.OpenFileDialog; $FileDialog.Filter = 'Loader Files (*.elf)|*.elf|All Files (*.*)|*.*'; if ($FileDialog.ShowDialog() -eq 'OK') { $FileDialog.FileName }"`) do set "loader_path=%%i"
-if "%loader_path%"=="" (
-    echo No file selected.
-    goto :prompt_for_loader
-)
-if not exist "%loader_path%" (
-    echo The file "%loader_path%" does not exist.
-    set "loader_path="
-    goto :prompt_for_loader
-)
 exit /b 0

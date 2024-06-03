@@ -3,7 +3,7 @@
 
 :: Function to prompt for loader file
 :prompt_for_loader
-set /p loader_path="Please enter the full path to the loader file (e.g., prog_firehose_ddr_fwupdate.elf): "
+set /p loader_path="Please enter the full path to the loader file: "
 if not exist "%loader_path%" (
     echo The file "%loader_path%" does not exist.
     goto prompt_for_loader

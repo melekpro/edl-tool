@@ -1,9 +1,16 @@
 @echo off
 :: Batch script to run emmcdl commands in a specified order with auto-detected COM port
 
-:: Function to prompt for loader file
+:: Function to prompt for loader file using PowerShell
 :prompt_for_loader
-set /p loader_path="Please enter the full path to the loader file: "
+echo.
+echo Please select the loader file using the file dialog.
+echo.
+for /f "usebackq tokens=*" %%i in (`powershell -command "Add-Type -AssemblyName System.Windows.Forms; $FileDialog = New-Object System.Windows.Forms.OpenFileDialog; $FileDialog.Filter = 'Loader Files (*.elf)|*.elf|All Files (*.*)|*.*'; if ($FileDialog.ShowDialog() -eq 'OK') { $FileDialog.FileName }"`) do set "loader_path=%%i"
+if "%loader_path%"=="" (
+    echo No file selected.
+    goto prompt_for_loader
+)
 if not exist "%loader_path%" (
     echo The file "%loader_path%" does not exist.
     goto prompt_for_loader
@@ -99,4 +106,5 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
+echo All commands executed successfully.
 exit /b 0
